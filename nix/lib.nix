@@ -1,11 +1,16 @@
 # nix/lib.nix — Shared helpers for nix stuff
-{ pkgs, npm-lockfile-fix }:
+{
+  pkgs,
+  npm-lockfile-fix,
+  nodejs,
+}:
 {
   # Returns a buildNpmPackage-compatible attrs set that provides:
-  #   patchPhase          — ensures lockfile has exactly one trailing newline
-  #   nativeBuildInputs   — [ updateLockfileScript ] (list, prepend with ++ for more)
+  #   patchPhase             — ensures lockfile has exactly one trailing newline
+  #   nativeBuildInputs      — [ updateLockfileScript ] (list, prepend with ++ for more)
   #   passthru.devShellHook  — stamp-checked npm install + hash auto-update
   #   passthru.npmLockfile   — metadata for mkFixLockfiles
+  #   nodejs                 — fixed nodejs version for all packages we use in the repo
   #
   # NOTE: npmConfigHook runs `diff` between the source lockfile and the
   # npm-deps cache lockfile. fetchNpmDeps preserves whatever trailing
@@ -24,6 +29,7 @@
       nixFile ? "nix/${attr}.nix", # defaults to nix/<attr>.nix
     }:
     {
+      inherit nodejs;
       patchPhase = ''
         runHook prePatch
         # Normalize trailing newlines so source and npm-deps always match,
@@ -56,8 +62,8 @@
 
           cd "$REPO_ROOT/${folder}"
           rm -rf node_modules/
-          npm cache clean --force
-          CI=true npm install
+          ${pkgs.lib.getExe' nodejs "npm"} cache clean --force
+          CI=true ${pkgs.lib.getExe' nodejs "npm"} install
           ${pkgs.lib.getExe npm-lockfile-fix} ./package-lock.json
 
           NIX_FILE="$REPO_ROOT/${nixFile}"
@@ -83,7 +89,7 @@
           STAMP_VALUE="$(_hermes_npm_stamp)"
           if [ ! -f "$STAMP" ] || [ "$(cat "$STAMP")" != "$STAMP_VALUE" ]; then
             echo "${pname}: installing npm dependencies..."
-            ( cd ${folder} && CI=true npm install --silent --no-fund --no-audit 2>/dev/null )
+            ( cd ${folder} && CI=true ${pkgs.lib.getExe' nodejs "npm"} install --silent --no-fund --no-audit 2>/dev/null )
 
             # Auto-update the nix hash so it stays in sync with the lockfile
             echo "${pname}: prefetching npm deps..."
