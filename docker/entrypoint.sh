@@ -76,10 +76,9 @@ if [ ! -f "$HERMES_HOME/config.yaml" ]; then
     cp "$INSTALL_DIR/cli-config.yaml.example" "$HERMES_HOME/config.yaml"
 fi
 
-# SOUL.md
-if [ ! -f "$HERMES_HOME/SOUL.md" ]; then
-    cp "$INSTALL_DIR/docker/SOUL.md" "$HERMES_HOME/SOUL.md"
-fi
+# SOUL.md — always sync from image to keep our custom persona current
+cp "$INSTALL_DIR/docker/SOUL.md" "$HERMES_HOME/SOUL.md"
+chmod 640 "$HERMES_HOME/SOUL.md" 2>/dev/null || true
 
 # Sync bundled skills (manifest-based so user edits are preserved)
 if [ -d "$INSTALL_DIR/skills" ]; then
