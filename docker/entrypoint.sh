@@ -71,10 +71,9 @@ if [ ! -f "$HERMES_HOME/.env" ]; then
     cp "$INSTALL_DIR/.env.example" "$HERMES_HOME/.env"
 fi
 
-# config.yaml
-if [ ! -f "$HERMES_HOME/config.yaml" ]; then
-    cp "$INSTALL_DIR/cli-config.yaml.example" "$HERMES_HOME/config.yaml"
-fi
+# config.yaml — always sync from image to keep model/STT settings current
+cp "$INSTALL_DIR/cli-config.yaml.example" "$HERMES_HOME/config.yaml"
+chmod 640 "$HERMES_HOME/config.yaml" 2>/dev/null || true
 
 # SOUL.md — always sync from image to keep our custom persona current
 cp "$INSTALL_DIR/docker/SOUL.md" "$HERMES_HOME/SOUL.md"
